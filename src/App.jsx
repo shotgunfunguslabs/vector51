@@ -326,6 +326,14 @@ export default function App() {
     () => Object.fromEntries(snapshots.map((s) => [s.state, s])),
     [snapshots]
   );
+  const nationalDelta = useMemo(() => {
+  const active = snapshots.filter((s) => s.activity_score >= 25);
+  if (active.length === 0) return 0;
+  return Math.round(
+    active.reduce((sum, s) => sum + (Number(s.change_7d_pct) || 0), 0) / active.length
+  );
+}, [snapshots]);
+
   const hotStates = useMemo(
     () => snapshots.filter((s) => s.tier === "Hot Zone").map((s) => s.state),
     [snapshots]
@@ -341,6 +349,11 @@ export default function App() {
         </div>
         <div style={{ textAlign: "right" }}>
           <div className="v51-status"><span className="v51-dot" />{hotStates.length} HOT ZONES</div>
+          <div className="v51-status" style={{ marginTop: 2 }}>
+            <span style={{ color: nationalDelta >= 0 ? "#FF9A3D" : "#3DBE7B" }}>
+              {nationalDelta >= 0 ? "\u25B2" : "\u25BC"} NATIONAL SIGNAL {nationalDelta >= 0 ? "+" : ""}{nationalDelta}%
+            </span>
+          </div>
           <div className="v51-updated">{fmtUpdated(updatedAt)}</div>
         </div>
       </header>
