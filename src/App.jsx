@@ -342,6 +342,31 @@ export default function App() {
   );
 }, [snapshots]);
 
+const nsi = useMemo(() => {
+  const s = snapshots.find((s) => s.national_signal_index != null);
+  return s?.national_signal_index ?? null;
+}, [snapshots]);
+
+const nsiTier = useMemo(() => {
+  if (nsi === null) return null;
+  if (nsi >= 75) return { label: "SIGNIFICANT", color: "#FF4D4D" };
+  if (nsi >= 50) return { label: "ACTIVE",      color: "#FF9A3D" };
+  if (nsi >= 25) return { label: "ELEVATED",    color: "#F5C84B" };
+  return              { label: "QUIET",         color: "#3DBE7B" };
+}, [nsi]);
+
+const momentum = useMemo(() => {
+  const s = snapshots.find((s) => s.national_momentum_pct != null);
+  return s?.national_momentum_pct ?? null;
+}, [snapshots]);
+
+const momentumLabel = useMemo(() => {
+  if (momentum === null) return null;
+  if (momentum > 15)  return { word: "Rising",  arrow: "▲", color: "#FF9A3D" };
+  if (momentum < -15) return { word: "Falling", arrow: "▼", color: "#3DBE7B" };
+  return                     { word: "Stable",  arrow: "■", color: "#6E7F94" };
+}, [momentum]);
+
   const hotStates = useMemo(
     () => snapshots.filter((s) => s.tier === "Hot Zone").map((s) => s.state),
     [snapshots]
@@ -360,14 +385,51 @@ export default function App() {
           <div className="v51-tag">V0.2 &mdash; SIGNAL BOARD{isMock ? " \u00B7 SAMPLE DATA" : ""}</div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div className="v51-status"><span className="v51-dot" />{hotStates.length} HOT ZONES</div>
-          <div className="v51-status" style={{ marginTop: 2 }}>
-            <span style={{ color: nationalDelta >= 0 ? "#FF9A3D" : "#3DBE7B" }}>
-              {nationalDelta >= 0 ? "\u25B2" : "\u25BC"} NATIONAL SIGNAL {nationalDelta >= 0 ? "+" : ""}{nationalDelta}%
-            </span>
-          </div>
-          <div className="v51-updated">{fmtUpdated(updatedAt)}</div>
-        </div>
+  {nsi !== null && nsiTier && (
+  <div style={{ marginBottom: 8 }}>
+    <div style={{
+      fontSize: 9, letterSpacing: "0.2em", color: "#6E7F94",
+      textTransform: "uppercase", marginBottom: 4,
+      display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6,
+    }}>
+      NATIONAL SIGNAL
+      <span
+        title="National Signal Index: a 0–100 measure of anomaly conditions. 0–24 Quiet · 25–49 Elevated · 50–74 Active · 75–100 Significant"
+        onClick={() => window.location.hash = "/about"}
+        style={{ cursor: "pointer", color: "#6E7F94", fontSize: 11, lineHeight: 1 }}
+      >ⓘ</span>
+    </div>
+    <div style={{
+      fontFamily: "'Space Grotesk', sans-serif",
+      fontSize: 36, fontWeight: 700,
+      color: nsiTier.color, lineHeight: 1,
+      textShadow: `0 0 24px ${nsiTier.color}66`,
+    }}>{nsi}</div>
+    <div style={{
+      fontSize: 10, letterSpacing: "0.2em",
+      color: nsiTier.color, marginTop: 3,
+    }}>{nsiTier.label}</div>
+  </div>
+)}
+  {momentumLabel && (
+    <div style={{
+      fontSize: 10, letterSpacing: "0.12em",
+      color: momentumLabel.color, marginBottom: 6,
+    }}>
+      {momentumLabel.arrow} {momentumLabel.word.toUpperCase()}
+      <span style={{ color: "#6E7F94", marginLeft: 6 }}>
+        · elevated by data load
+      </span>
+    </div>
+  )}
+  <div className="v51-status" style={{ justifyContent: "flex-end", marginBottom: 2 }}>
+    <span className="v51-dot" />
+    {hotStates.length} HOT &nbsp;
+    {snapshots.filter(s => s.tier === "Active").length} ACTIVE &nbsp;
+    {snapshots.filter(s => s.tier === "Elevated").length} ELEVATED
+  </div>
+  <div className="v51-updated">{fmtUpdated(updatedAt)}</div>
+</div>
       </header>
 
       <main className="v51-main">

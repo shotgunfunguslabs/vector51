@@ -114,10 +114,23 @@ export default function InfoPage({ initialHash }) {
             explanation.
           </p>
           <p className="v51i-p">
-            The platform is built around a daily activity index — a signal score for each US state
-            derived from recent report volume, source quality, and week-over-week change. States
-            are assigned a tier: Quiet, Elevated, Active, or Hot Zone. These scores update every
-            morning at 06:00 UTC.
+            <p className="v51i-p">
+  The platform is built around a <strong>National Signal Index</strong> — a 0–100 measure
+  of anomaly conditions across the United States, updated every morning at 06:00 UTC.
+</p>
+<p className="v51i-p">
+  The index combines Hot Zone, Active, and Elevated state conditions into a single score.
+  It measures <em>conditions</em>, not the validity of any individual report.
+</p>
+<div className="v51i-pull">
+  We track signal, not truth.<br />We identify patterns, not conclusions.
+</div>
+<p className="v51i-p">
+  Index scale: <strong style={{color:"#3DBE7B"}}>0–24 Quiet</strong> &nbsp;
+  <strong style={{color:"#F5C84B"}}>25–49 Elevated</strong> &nbsp;
+  <strong style={{color:"#FF9A3D"}}>50–74 Active</strong> &nbsp;
+  <strong style={{color:"#FF4D4D"}}>75–100 Significant</strong>
+</p>
           </p>
           <p className="v51i-p">
             Built by <a href="https://shotgunfungus.com" target="_blank" rel="noopener noreferrer">Shotgunfungus Labs</a>.
