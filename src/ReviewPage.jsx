@@ -46,10 +46,10 @@ function PublishForm({ item, events, onDone }) {
     return isNaN(d) ? new Date().toISOString().slice(0, 10) : d.toISOString().slice(0, 10);
   };
   const [f, setF] = useState({
-    city: "", state: item.raw_location || "", event_type: "UAP report",
-    signal_level: "Low", observed_at: guessDate(),
-    summary: item.raw_title || "",
-  });
+  city: "", country: "US", state: item.raw_location || "", event_type: "UAP report",
+  signal_level: "Low", observed_at: guessDate(),
+  summary: item.raw_title || "",
+});
   const [mergeId, setMergeId] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -60,7 +60,7 @@ function PublishForm({ item, events, onDone }) {
     setBusy(true); setErr("");
     const { data, error } = await supabase.from("reports").insert({
       observed_at: `${f.observed_at}T12:00:00Z`,
-      city: f.city, state: f.state, event_type: f.event_type,
+      city: f.city, country: f.country, state: f.state, event_type: f.event_type,
       domain: "aerial", source_name: item.source_name,
       source_class: item.source_class || "Media report",
       signal_level: f.signal_level, summary: f.summary, url: item.source_url,
@@ -90,14 +90,40 @@ function PublishForm({ item, events, onDone }) {
   }
 
   return (
-    <div className="v51r-form">
-      <div><label>City</label><input value={f.city} onChange={set("city")} placeholder="e.g. Sedona" /></div>
-      <div><label>State</label>
-        <select value={f.state} onChange={set("state")}>
-          <option value="">—</option>
-          {US_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
-        </select>
-      </div>
+  <div className="v51r-form">
+    <div className="v51r-full">
+      <label>Country</label>
+      <select value={f.country} onChange={set("country")}>
+        <option value="US">United States</option>
+        <option value="CA">Canada</option>
+        <option value="GB">United Kingdom</option>
+        <option value="AU">Australia</option>
+        <option value="BR">Brazil</option>
+        <option value="MX">Mexico</option>
+        <option value="DE">Germany</option>
+        <option value="FR">France</option>
+        <option value="ES">Spain</option>
+        <option value="IT">Italy</option>
+        <option value="AR">Argentina</option>
+        <option value="CL">Chile</option>
+        <option value="CO">Colombia</option>
+        <option value="PE">Peru</option>
+        <option value="RU">Russia</option>
+        <option value="JP">Japan</option>
+        <option value="IN">India</option>
+        <option value="ZA">South Africa</option>
+        <option value="NZ">New Zealand</option>
+        <option value="SV">El Salvador</option>
+        <option value="OTHER">Other</option>
+      </select>
+    </div>
+    <div><label>City</label><input value={f.city} onChange={set("city")} placeholder="e.g. Sedona" /></div>
+    <div><label>State</label>
+      <select value={f.state} onChange={set("state")}>
+        <option value="">—</option>
+        {US_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+      </select>
+    </div>
       <div><label>Event type</label>
         <select value={f.event_type} onChange={set("event_type")}>
           {EVENT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
