@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import ReviewPage from "./ReviewPage";
 import { useSignalData } from "./hooks/useSignalData";
 import { RISING_REGIONS, FORECAST } from "./mockData";
+import ReviewPage from "./ReviewPage";
+import InfoPage from "./InfoPage";
 
 // ─────────────────────────────────────────────
 // VECTOR51 — Signal Board v0.2
@@ -347,6 +348,8 @@ export default function App() {
   );
 
   if (route === "#/review") return <ReviewPage />;
+  if (["#/about","#/terms","#/privacy"].includes(route))
+  return <InfoPage initialHash={route} />;
 
   return (
     <div className="v51">
@@ -381,7 +384,17 @@ export default function App() {
         {tab === "trends" && <TrendsPage snapshots={snapshots} reports={reports} />}
         {tab === "forecast" && <ForecastPage />}
         <footer className="v51-foot">
-          Vector51 aggregates public anomalous-event reports for entertainment, research, and pattern exploration. Reports are unverified unless otherwise noted.
+          Vector51 aggregates public anomalous-event reports for entertainment, research, and
+          pattern exploration. Reports are unverified unless otherwise noted.
+          <div style={{ marginTop: 10, display: "flex", gap: 14, flexWrap: "wrap" }}>
+            <a href="#/about" style={{ color: "var(--dim)", textDecoration: "none" }}
+              onClick={(e) => { e.preventDefault(); window.location.hash = "/about"; }}>About</a>
+            <a href="#/terms" style={{ color: "var(--dim)", textDecoration: "none" }}
+              onClick={(e) => { e.preventDefault(); window.location.hash = "/terms"; }}>Terms</a>
+            <a href="#/privacy" style={{ color: "var(--dim)", textDecoration: "none" }}
+              onClick={(e) => { e.preventDefault(); window.location.hash = "/privacy"; }}>Privacy</a>
+            <span style={{ color: "var(--dim)" }}>© 2026 Vector51 · A Shotgunfungus Labs Project</span>
+           </div>
         </footer>
       </main>
 
