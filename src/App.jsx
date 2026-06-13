@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import ReviewPage from "./ReviewPage";
 import { useSignalData } from "./hooks/useSignalData";
 import { RISING_REGIONS, FORECAST } from "./mockData";
 
@@ -320,6 +321,12 @@ function ForecastPage() {
 export default function App() {
   const [tab, setTab] = useState("map");
   const [selected, setSelected] = useState("NV");
+  const [route, setRoute] = useState(window.location.hash);
+  useEffect(() => {
+    const onHash = () => setRoute(window.location.hash);
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
   const { reports, snapshots, updatedAt, isMock } = useSignalData();
 
   const snapshotsByState = useMemo(
@@ -338,6 +345,8 @@ export default function App() {
     () => snapshots.filter((s) => s.tier === "Hot Zone").map((s) => s.state),
     [snapshots]
   );
+
+  if (route === "#/review") return <ReviewPage />;
 
   return (
     <div className="v51">
