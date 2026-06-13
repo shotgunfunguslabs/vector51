@@ -56,7 +56,8 @@ function PublishForm({ item, events, onDone }) {
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
 
   async function publish() {
-    if (!f.state || !f.city) { setErr("City and state are required to map it."); return; }
+    if (!f.city) { setErr("City is required."); return; }
+if (f.country === "US" && !f.state) { setErr("State is required for US reports."); return; }
     setBusy(true); setErr("");
     const { data, error } = await supabase.from("reports").insert({
       observed_at: `${f.observed_at}T12:00:00Z`,
@@ -118,7 +119,7 @@ function PublishForm({ item, events, onDone }) {
       </select>
     </div>
     <div><label>City</label><input value={f.city} onChange={set("city")} placeholder="e.g. Sedona" /></div>
-    <div><label>State</label>
+    <div><label>State {f.country !== "US" && <span style={{color:"#6E7F94",fontWeight:400}}>(optional)</span>}</label>
       <select value={f.state} onChange={set("state")}>
         <option value="">—</option>
         {US_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
