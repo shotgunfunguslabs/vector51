@@ -4,11 +4,6 @@ import { RISING_REGIONS, FORECAST } from "./mockData";
 import ReviewPage from "./ReviewPage";
 import InfoPage from "./InfoPage";
 
-// ─────────────────────────────────────────────
-// VECTOR51 — Signal Board v0.2
-// Data-driven: everything renders from reports + signal_snapshots.
-// ─────────────────────────────────────────────
-
 const TILE = {
   AK: [0, 0], ME: [11, 0],
   VT: [10, 1], NH: [11, 1],
@@ -36,14 +31,13 @@ const STATE_NAMES = {
 
 const TIER_STYLE = {
   "Hot Zone": { color: "#FF4D4D", glow: "rgba(255,77,77,0.55)", hot: true },
-  Active: { color: "#FF9A3D", glow: "rgba(255,154,61,0.45)", hot: false },
-  Elevated: { color: "#F5C84B", glow: "rgba(245,200,75,0.35)", hot: false },
-  Quiet: { color: "#3DBE7B", glow: "rgba(61,190,123,0.18)", hot: false },
+  Active:     { color: "#FF9A3D", glow: "rgba(255,154,61,0.45)", hot: false },
+  Elevated:   { color: "#F5C84B", glow: "rgba(245,200,75,0.35)", hot: false },
+  Quiet:      { color: "#3DBE7B", glow: "rgba(61,190,123,0.18)", hot: false },
 };
 
 const css = `
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
-
 .v51 {
   --bg: #080C12; --panel: #0E141D; --panel2: #121A26; --line: #1C2837;
   --text: #D6E1EF; --dim: #6E7F94; --amber: #FFB454;
@@ -54,13 +48,10 @@ const css = `
   display: flex; flex-direction: column;
 }
 .v51 * { box-sizing: border-box; }
-.v51-head { padding: 18px 20px 14px; border-bottom: 1px solid var(--line); display: flex; align-items: flex-start; justify-content: space-between; }
+.v51-head { padding: 14px 20px; border-bottom: 1px solid var(--line); display: flex; align-items: flex-start; justify-content: space-between; }
 .v51-mark { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; letter-spacing: 0.22em; }
 .v51-mark span { color: var(--amber); }
 .v51-tag { font-size: 9px; color: var(--dim); letter-spacing: 0.18em; margin-top: 3px; }
-.v51-status { font-size: 10px; color: var(--dim); display: flex; align-items: center; justify-content: flex-end; gap: 6px; letter-spacing: 0.12em; }
-.v51-updated { font-size: 9px; color: var(--dim); letter-spacing: 0.1em; margin-top: 4px; }
-.v51-dot { width: 6px; height: 6px; border-radius: 50%; background: #FF4D4D; animation: v51pulse 2s infinite; }
 .v51-main { flex: 1; overflow-y: auto; padding: 20px 16px 96px; max-width: 720px; width: 100%; margin: 0 auto; }
 .v51-eyebrow { font-size: 10px; letter-spacing: 0.24em; color: var(--amber); text-transform: uppercase; margin-bottom: 6px; }
 .v51-h1 { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 500; margin: 0 0 4px; letter-spacing: 0.01em; }
@@ -72,7 +63,7 @@ const css = `
 .v51-tile.hot { animation: v51pulse 1.8s infinite; }
 .v51-tile.empty { background: transparent; cursor: default; pointer-events: none; border: none; }
 @keyframes v51pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
-@media (prefers-reduced-motion: reduce) { .v51-tile.hot, .v51-dot { animation: none; } .v51-tile:hover { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .v51-tile.hot { animation: none; } .v51-tile:hover { transform: none; } }
 .v51-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 10px; color: var(--dim); margin-bottom: 18px; letter-spacing: 0.06em; }
 .v51-legend i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; margin-right: 5px; vertical-align: -1px; }
 .v51-detail { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
@@ -120,18 +111,64 @@ const fmtUpdated = (iso) => {
   return `UPDATED ${date} \u00B7 ${time} UTC`;
 };
 
-function MapPage({ snapshotsByState, hotStates, reports, selected, setSelected }) {
+function MapPage({ snapshotsByState, hotStates, snapshots, reports, selected, setSelected, nsi, nsiTier, momentumLabel, updatedAt }) {
   const sel = selected ? snapshotsByState[selected] : null;
   const selReports = selected ? reports.filter((r) => r.state === selected) : [];
   const hotLabel =
     hotStates.length > 0
-      ? `${hotStates.length} hot zone${hotStates.length === 1 ? "" : "s"} detected. Activity clustering across ${hotStates
-          .map((s) => STATE_NAMES[s])
-          .join(", ")}.`
+      ? `${hotStates.length} hot zone${hotStates.length === 1 ? "" : "s"} detected. Activity clustering across ${hotStates.map((s) => STATE_NAMES[s]).join(", ")}.`
       : "No hot zones detected. National activity is within baseline range.";
 
   return (
     <div>
+
+      <div style={{
+        background: "var(--panel2)", border: "1px solid var(--line)",
+        borderRadius: 8, padding: "20px 20px 16px", marginBottom: 20,
+      }}>
+        <div style={{
+          fontSize: 9, letterSpacing: "0.22em", color: "#6E7F94",
+          textTransform: "uppercase", marginBottom: 10,
+          display: "flex", alignItems: "center", gap: 6,
+        }}>
+          NATIONAL SIGNAL
+          <span onClick={() => window.location.hash = "/about"}
+            style={{ cursor: "pointer", color: "#6E7F94", fontSize: 11 }}>ⓘ</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 14, marginBottom: 10 }}>
+          <div style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: 56, fontWeight: 700, lineHeight: 1,
+            color: nsiTier?.color ?? "#6E7F94",
+            textShadow: `0 0 32px ${nsiTier?.color ?? "#6E7F94"}66`,
+          }}>{nsi ?? "—"}</div>
+          <div style={{ paddingBottom: 8 }}>
+            <div style={{
+              fontSize: 13, letterSpacing: "0.18em",
+              color: nsiTier?.color ?? "#6E7F94", fontWeight: 600,
+            }}>{nsiTier?.label ?? "—"}</div>
+            {momentumLabel && (
+              <div style={{
+                fontSize: 11, letterSpacing: "0.1em",
+                color: momentumLabel.color, marginTop: 3,
+              }}>
+                {momentumLabel.arrow} {momentumLabel.word.toUpperCase()}
+              </div>
+            )}
+          </div>
+        </div>
+        <div style={{
+          display: "flex", gap: 16, fontSize: 11,
+          color: "#6E7F94", letterSpacing: "0.06em", flexWrap: "wrap",
+          paddingTop: 10, borderTop: "1px solid var(--line)",
+        }}>
+          <span style={{ color: "#FF4D4D" }}>● {hotStates.length} Hot Zone{hotStates.length !== 1 ? "s" : ""}</span>
+          <span style={{ color: "#FF9A3D" }}>● {snapshots.filter(s => s.tier === "Active").length} Active</span>
+          <span style={{ color: "#F5C84B" }}>● {snapshots.filter(s => s.tier === "Elevated").length} Elevated</span>
+          <span style={{ marginLeft: "auto" }}>{fmtUpdated(updatedAt)}</span>
+        </div>
+      </div>
+
       <div className="v51-eyebrow">Signal map</div>
       <h1 className="v51-h1">Something is happening.</h1>
       <p className="v51-sub">Public report activity index across all 50 states. Tap a state for detail.</p>
@@ -178,14 +215,11 @@ function MapPage({ snapshotsByState, hotStates, reports, selected, setSelected }
         <div className="v51-detail">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
             <h3>{STATE_NAMES[selected]}</h3>
-            <span
-              className="v51-badge"
-              style={{
-                color: TIER_STYLE[sel.tier].color,
-                background: `${TIER_STYLE[sel.tier].color}1A`,
-                border: `1px solid ${TIER_STYLE[sel.tier].color}55`,
-              }}
-            >
+            <span className="v51-badge" style={{
+              color: TIER_STYLE[sel.tier].color,
+              background: `${TIER_STYLE[sel.tier].color}1A`,
+              border: `1px solid ${TIER_STYLE[sel.tier].color}55`,
+            }}>
               {sel.tier} &middot; {sel.activity_score}
             </span>
           </div>
@@ -200,6 +234,7 @@ function MapPage({ snapshotsByState, hotStates, reports, selected, setSelected }
           )}
         </div>
       )}
+
     </div>
   );
 }
@@ -222,10 +257,7 @@ function ReportsPage({ reports }) {
           <p className="v51-card-sum">
             {r.summary}
             {r.url && (
-              <>
-                {" "}
-                <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--amber)" }}>Source &rarr;</a>
-              </>
+              <> {" "}<a href={r.url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--amber)" }}>Source &rarr;</a></>
             )}
           </p>
         </div>
@@ -240,7 +272,6 @@ function TrendsPage({ snapshots, reports }) {
     .sort((a, b) => b.change_7d_pct - a.change_7d_pct)
     .slice(0, 5);
   const maxChange = Math.max(1, ...topStates.map((s) => s.change_7d_pct));
-
   const mix = Object.entries(
     reports.reduce((acc, r) => ((acc[r.event_type] = (acc[r.event_type] || 0) + 1), acc), {})
   )
@@ -253,7 +284,6 @@ function TrendsPage({ snapshots, reports }) {
       <div className="v51-eyebrow">7-day trends</div>
       <h1 className="v51-h1">Where it&rsquo;s heating up</h1>
       <p className="v51-sub">Week-over-week change in report volume.</p>
-
       <div className="v51-section">
         <h2>Top states this week</h2>
         {topStates.map((s) => (
@@ -266,7 +296,6 @@ function TrendsPage({ snapshots, reports }) {
           </div>
         ))}
       </div>
-
       <div className="v51-section">
         <h2>Fastest rising regions</h2>
         {RISING_REGIONS.map((r) => (
@@ -279,7 +308,6 @@ function TrendsPage({ snapshots, reports }) {
           </div>
         ))}
       </div>
-
       <div className="v51-section">
         <h2>Most common event type</h2>
         {mix.map((e) => (
@@ -323,49 +351,44 @@ export default function App() {
   const [tab, setTab] = useState("map");
   const [selected, setSelected] = useState("NV");
   const [route, setRoute] = useState(window.location.hash);
+
   useEffect(() => {
     const onHash = () => setRoute(window.location.hash);
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
+
   const { reports, snapshots, updatedAt, isMock } = useSignalData();
 
   const snapshotsByState = useMemo(
     () => Object.fromEntries(snapshots.map((s) => [s.state, s])),
     [snapshots]
   );
-  const nationalDelta = useMemo(() => {
-  const active = snapshots.filter((s) => s.activity_score >= 25);
-  if (active.length === 0) return 0;
-  return Math.round(
-    active.reduce((sum, s) => sum + (Number(s.change_7d_pct) || 0), 0) / active.length
-  );
-}, [snapshots]);
 
-const nsi = useMemo(() => {
-  const s = snapshots.find((s) => s.national_signal_index != null);
-  return s?.national_signal_index ?? null;
-}, [snapshots]);
+  const nsi = useMemo(() => {
+    const s = snapshots.find((s) => s.national_signal_index != null);
+    return s?.national_signal_index ?? null;
+  }, [snapshots]);
 
-const nsiTier = useMemo(() => {
-  if (nsi === null) return null;
-  if (nsi >= 75) return { label: "SIGNIFICANT", color: "#FF4D4D" };
-  if (nsi >= 50) return { label: "ACTIVE",      color: "#FF9A3D" };
-  if (nsi >= 25) return { label: "ELEVATED",    color: "#F5C84B" };
-  return              { label: "QUIET",         color: "#3DBE7B" };
-}, [nsi]);
+  const nsiTier = useMemo(() => {
+    if (nsi === null) return null;
+    if (nsi >= 75) return { label: "SIGNIFICANT", color: "#FF4D4D" };
+    if (nsi >= 50) return { label: "ACTIVE",      color: "#FF9A3D" };
+    if (nsi >= 25) return { label: "ELEVATED",    color: "#F5C84B" };
+    return               { label: "QUIET",        color: "#3DBE7B" };
+  }, [nsi]);
 
-const momentum = useMemo(() => {
-  const s = snapshots.find((s) => s.national_momentum_pct != null);
-  return s?.national_momentum_pct ?? null;
-}, [snapshots]);
+  const momentum = useMemo(() => {
+    const s = snapshots.find((s) => s.national_momentum_pct != null);
+    return s?.national_momentum_pct ?? null;
+  }, [snapshots]);
 
-const momentumLabel = useMemo(() => {
-  if (momentum === null) return null;
-  if (momentum > 15)  return { word: "Rising",  arrow: "▲", color: "#FF9A3D" };
-  if (momentum < -15) return { word: "Falling", arrow: "▼", color: "#3DBE7B" };
-  return                     { word: "Stable",  arrow: "■", color: "#6E7F94" };
-}, [momentum]);
+  const momentumLabel = useMemo(() => {
+    if (momentum === null) return null;
+    if (momentum > 15)  return { word: "Rising",  arrow: "\u25B2", color: "#FF9A3D" };
+    if (momentum < -15) return { word: "Falling", arrow: "\u25BC", color: "#3DBE7B" };
+    return                     { word: "Stable",  arrow: "\u25A0", color: "#6E7F94" };
+  }, [momentum]);
 
   const hotStates = useMemo(
     () => snapshots.filter((s) => s.tier === "Hot Zone").map((s) => s.state),
@@ -373,8 +396,7 @@ const momentumLabel = useMemo(() => {
   );
 
   if (route === "#/review") return <ReviewPage />;
-  if (["#/about","#/terms","#/privacy"].includes(route))
-  return <InfoPage initialHash={route} />;
+  if (["#/about", "#/terms", "#/privacy"].includes(route)) return <InfoPage initialHash={route} />;
 
   return (
     <div className="v51">
@@ -382,54 +404,8 @@ const momentumLabel = useMemo(() => {
       <header className="v51-head">
         <div>
           <div className="v51-mark">VECTOR<span>51</span></div>
-          <div className="v51-tag">V0.2 &mdash; SIGNAL BOARD{isMock ? " \u00B7 SAMPLE DATA" : ""}</div>
+          <div className="v51-tag">V0.3 &mdash; SIGNAL BOARD{isMock ? " \u00B7 SAMPLE DATA" : ""}</div>
         </div>
-        <div style={{ textAlign: "right" }}>
-  {nsi !== null && nsiTier && (
-  <div style={{ marginBottom: 8 }}>
-    <div style={{
-      fontSize: 9, letterSpacing: "0.2em", color: "#6E7F94",
-      textTransform: "uppercase", marginBottom: 4,
-      display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6,
-    }}>
-      NATIONAL SIGNAL
-      <span
-        title="National Signal Index: a 0–100 measure of anomaly conditions. 0–24 Quiet · 25–49 Elevated · 50–74 Active · 75–100 Significant"
-        onClick={() => window.location.hash = "/about"}
-        style={{ cursor: "pointer", color: "#6E7F94", fontSize: 11, lineHeight: 1 }}
-      >ⓘ</span>
-    </div>
-    <div style={{
-      fontFamily: "'Space Grotesk', sans-serif",
-      fontSize: 36, fontWeight: 700,
-      color: nsiTier.color, lineHeight: 1,
-      textShadow: `0 0 24px ${nsiTier.color}66`,
-    }}>{nsi}</div>
-    <div style={{
-      fontSize: 10, letterSpacing: "0.2em",
-      color: nsiTier.color, marginTop: 3,
-    }}>{nsiTier.label}</div>
-  </div>
-)}
-  {momentumLabel && (
-    <div style={{
-      fontSize: 10, letterSpacing: "0.12em",
-      color: momentumLabel.color, marginBottom: 6,
-    }}>
-      {momentumLabel.arrow} {momentumLabel.word.toUpperCase()}
-      <span style={{ color: "#6E7F94", marginLeft: 6 }}>
-        · elevated by data load
-      </span>
-    </div>
-  )}
-  <div className="v51-status" style={{ justifyContent: "flex-end", marginBottom: 2 }}>
-    <span className="v51-dot" />
-    {hotStates.length} HOT &nbsp;
-    {snapshots.filter(s => s.tier === "Active").length} ACTIVE &nbsp;
-    {snapshots.filter(s => s.tier === "Elevated").length} ELEVATED
-  </div>
-  <div className="v51-updated">{fmtUpdated(updatedAt)}</div>
-</div>
       </header>
 
       <main className="v51-main">
@@ -437,9 +413,14 @@ const momentumLabel = useMemo(() => {
           <MapPage
             snapshotsByState={snapshotsByState}
             hotStates={hotStates}
+            snapshots={snapshots}
             reports={reports}
             selected={selected}
             setSelected={setSelected}
+            nsi={nsi}
+            nsiTier={nsiTier}
+            momentumLabel={momentumLabel}
+            updatedAt={updatedAt}
           />
         )}
         {tab === "reports" && <ReportsPage reports={reports} />}
@@ -455,8 +436,8 @@ const momentumLabel = useMemo(() => {
               onClick={(e) => { e.preventDefault(); window.location.hash = "/terms"; }}>Terms</a>
             <a href="#/privacy" style={{ color: "var(--dim)", textDecoration: "none" }}
               onClick={(e) => { e.preventDefault(); window.location.hash = "/privacy"; }}>Privacy</a>
-            <span style={{ color: "var(--dim)" }}>© 2026 Vector51 · A Shotgunfungus Labs Project</span>
-           </div>
+            <span style={{ color: "var(--dim)" }}>&copy; 2026 Vector51 &middot; A Shotgunfungus Labs Project</span>
+          </div>
         </footer>
       </main>
 
