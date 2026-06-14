@@ -46,9 +46,10 @@ function PublishForm({ item, events, onDone }) {
     return isNaN(d) ? new Date().toISOString().slice(0, 10) : d.toISOString().slice(0, 10);
   };
   const [f, setF] = useState({
-  city: "", country: "US", state: item.raw_location || "", event_type: "UAP report",
-  signal_level: "Low", observed_at: guessDate(),
-  summary: item.raw_title || "",
+  city: "", country: "US", state: item.raw_location || "",
+  scope: "local",
+  event_type: "UAP report", signal_level: "Low",
+  observed_at: guessDate(), summary: item.raw_title || "",
 });
   const [mergeId, setMergeId] = useState("");
   const [busy, setBusy] = useState(false);
@@ -56,12 +57,15 @@ function PublishForm({ item, events, onDone }) {
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
 
   async function publish() {
-    if (!f.city) { setErr("City is required."); return; }
-if (f.country === "US" && !f.state) { setErr("State is required for US reports."); return; }
+    if (f.scope === "local" && !f.city) { setErr("City is required for local reports."); return; }
+    if (f.scope === "local" && f.country === "US" && !f.state) { setErr("State is required for US local reports."); return; }
     setBusy(true); setErr("");
     const { data, error } = await supabase.from("reports").insert({
       observed_at: `${f.observed_at}T12:00:00Z`,
-      city: f.city, country: f.country, state: f.state, event_type: f.event_type,
+      city: f.scope === "local" ? f.city : "National",
+      country: f.country,
+      state: f.scope === "local" ? f.state : null,
+      scope: f.scope,
       domain: "aerial", source_name: item.source_name,
       source_class: item.source_class || "Media report",
       signal_level: f.signal_level, summary: f.summary, url: item.source_url,
@@ -118,6 +122,13 @@ if (f.country === "US" && !f.state) { setErr("State is required for US reports."
         <option value="OTHER">Other</option>
       </select>
     </div>
+    <div className="v51r-full">
+      <label>Scope</label>
+        <select value={f.scope} onChange={set("scope")}>
+        <option value="local">Local — specific location</option>
+        <option value="national">National — no specific location</option>
+        </select>
+      </div>
     <div><label>City</label><input value={f.city} onChange={set("city")} placeholder="e.g. Sedona" /></div>
     <div><label>State {f.country !== "US" && <span style={{color:"#6E7F94",fontWeight:400}}>(optional)</span>}</label>
       <select value={f.state} onChange={set("state")}>
