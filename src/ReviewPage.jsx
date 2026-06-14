@@ -125,7 +125,7 @@ function PublishForm({ item, events, onDone }) {
         <option value="ZA">South Africa</option>
         <option value="NZ">New Zealand</option>
         <option value="SV">El Salvador</option>
-        <option value="OTHER">Other</option>
+        <option value="Other">Other</option>
       </select>
     </div>
     <div className="v51r-full">
