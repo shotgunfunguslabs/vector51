@@ -199,6 +199,19 @@ export default function ReviewPage() {
   }
   useEffect(() => { if (session) load(); }, [session]);
 
+  // Mark duplicates by URL within the current queue
+const urlCounts = {};
+items.forEach(item => {
+  if (item.source_url) {
+    urlCounts[item.source_url] = (urlCounts[item.source_url] || 0) + 1;
+  }
+});
+const dupeUrls = new Set(
+  Object.entries(urlCounts)
+    .filter(([_, count]) => count > 1)
+    .map(([url]) => url)
+);
+
   async function login(e) {
     e.preventDefault(); setErr("");
     const { error } = await supabase.auth.signInWithPassword(creds);
@@ -245,6 +258,14 @@ export default function ReviewPage() {
         {items.map((item) => (
           <div key={item.id} className="v51r-card">
             <div className="v51r-meta">
+              {item.source_url && dupeUrls.has(item.source_url) && (
+  <div style={{
+    fontSize: 9, letterSpacing: "0.12em", color: "#FF4D4D",
+    textTransform: "uppercase", marginBottom: 6,
+  }}>
+    ⚠ Duplicate URL in queue — reject one
+  </div>
+)}
               {item.source_name} &middot; {item.raw_location || "state unknown"} &middot; {item.raw_date || "no date"}
             </div>
             <div className="v51r-title">{item.raw_title}</div>

@@ -103,7 +103,7 @@ async function run() {
           raw_date: it.pubDate,
           raw_location: state,
           raw_payload: { query: q, feed: "google-news-rss" },
-          content_hash: hash(`${normTitle}|${it.source.toLowerCase()}`),
+          content_hash: hash(it.link || `${normTitle}|${it.source.toLowerCase()}`),
           ingestion_status: "needs_review",
           domain: "aerial",
         });
