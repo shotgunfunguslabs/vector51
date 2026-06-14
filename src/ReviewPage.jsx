@@ -48,8 +48,10 @@ function PublishForm({ item, events, onDone }) {
   const [f, setF] = useState({
   city: "", country: "US", state: item.raw_location || "",
   scope: "local",
-  event_type: "UAP report", signal_level: "Low",
-  observed_at: guessDate(), summary: item.raw_title || "",
+  event_type: "UAP report",
+  signal_level: "Low",
+  observed_at: guessDate(),
+  summary: item.raw_title || "",
 });
   const [mergeId, setMergeId] = useState("");
   const [busy, setBusy] = useState(false);
