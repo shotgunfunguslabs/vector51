@@ -11,13 +11,23 @@ if (!SUPABASE_URL || !SERVICE_KEY) {
   process.exit(1);
 }
 
+// Replace these two blocks:
+
+function getAfterDate() {
+  const d = new Date();
+  d.setDate(d.getDate() - 30);
+  return d.toISOString().split('T')[0];
+}
+
+const after = getAfterDate();
+
 const QUERIES = [
-  '"UAP sighting"',
-  '"unexplained lights"',
-  '"strange lights" sky',
-  '"drone swarm"',
-  '"unidentified object" sky',
-  '"mystery drone"',
+  `"UAP sighting" after:${after}`,
+  `"unexplained lights" after:${after}`,
+  `"strange lights" sky after:${after}`,
+  `"drone swarm" after:${after}`,
+  `"unidentified object" sky after:${after}`,
+  `"mystery drone" after:${after}`,
 ];
 
 const feedUrl = (q) =>
