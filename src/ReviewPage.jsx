@@ -68,9 +68,13 @@ function PublishForm({ item, events, onDone }) {
       country: f.country,
       state: f.scope === "local" ? f.state : null,
       scope: f.scope,
-      domain: "aerial", source_name: item.source_name,
+      event_type: f.event_type,
+      domain: "aerial",
+      source_name: item.source_name,
       source_class: item.source_class || "Media report",
-      signal_level: f.signal_level, summary: f.summary, url: item.source_url,
+      signal_level: f.signal_level,
+      summary: f.summary,
+      url: item.source_url,
     }).select("id").single();
     if (error) { setErr(error.message); setBusy(false); return; }
     const { error: e2 } = await supabase.from("raw_reports")
